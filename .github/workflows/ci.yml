@@ -25,26 +25,15 @@ jobs:
           docker rm sammreen || true
           docker run -d --name sammreen -p 81:81 sammreen
 
-  
   test:
     runs-on: self-hosted
     needs: deploy
     container:
       image: curlimages/curl:latest
     steps:
-      - name: Wait for the server to be up
+      - name: Test if the server is up
         run: |
-          echo "Waiting for the server to be up..."
-          sleep 60  # Adjust this delay if necessary based on your deployment time
-
-      - name: Check server response
-        run: |
-          echo "Checking if the server is up..."
-          RESPONSE_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://103.172.26.37:81)
-          echo "HTTP Response Code: $RESPONSE_CODE"
-          if [ "$RESPONSE_CODE" -ne 200 ]; then
-            echo "Server is not up. HTTP code: $RESPONSE_CODE"
-            exit 1
-          else
-            echo "Server is up and running."
-          fi
+          sleep 60
+          curl -v http://103.172.26.37:81 || true
+          test $(curl -s -o /dev/null -w "%{http_code}" http://103.172.26.37:81) -eq 200
+  
