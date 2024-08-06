@@ -32,6 +32,6 @@ jobs:
       - name: Test if the server is up
         run: |
           echo "Testing if the server is up..."
-          sudo apt-get update && sudo apt-get install -y curl
+          sudo yum update -y && sudo yum install -y curl
           sleep 10
           bash -c '[[ $(curl -s -o /dev/null -w "%{http_code}" http://103.172.26.37:81) == "200" ]]'
