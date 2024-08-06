@@ -33,6 +33,23 @@ jobs:
     steps:
       - name: Test if the server is up
         run: |
-          sleep 180  # Increase sleep time to 120 seconds
-          curl -v http://103.172.26.37:81 || true
-          test $(curl -s -o /dev/null -w "%{http_code}" http://103.172.26.37:81) -eq 200
+          echo "Waiting for the server to be up..."
+          sleep 180  
+          
+          echo "Checking server response..."
+          MAX_RETRIES=5
+          RETRY_INTERVAL=30
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            RESPONSE_CODE=$(curl -s --max-time 60 -o /dev/null -w "%{http_code}" http://103.172.26.37:81)
+            if [ "$RESPONSE_CODE" -eq 200 ]; then
+              echo "Server is up and running."
+              exit 0
+            else
+              echo "Attempt $i: Server is not up. HTTP code: $RESPONSE_CODE"
+              sleep $RETRY_INTERVAL
+            fi
+          done
+          
+          echo "Server did not respond with HTTP 200 after $MAX_RETRIES attempts."
+          exit 1
