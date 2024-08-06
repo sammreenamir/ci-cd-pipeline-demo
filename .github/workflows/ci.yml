@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on: [push, pull_request]
 
@@ -6,9 +6,9 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      
       - name: Build Docker image
         run: |
           echo "Building Docker image..."
@@ -17,7 +17,7 @@ jobs:
   deploy:
     runs-on: self-hosted
     needs: build
-    steps:
+    steps:     
       - name: Deploy Docker container
         run: |
           echo "Deploying Docker container..."
@@ -28,14 +28,10 @@ jobs:
   test:
     runs-on: self-hosted
     needs: deploy
-    steps:
-      - name: Install curl (CentOS 8)
-        run: |
-          sudo yum update -y
-          sudo yum install -y curl
-
+    steps:   
       - name: Test if the server is up
         run: |
           echo "Testing if the server is up..."
+          sudo apt-get update && sudo apt-get install -y curl
           sleep 10
-          '[[ $(curl -s -o /dev/null -w "%{http_code}" http://103.172.26.37:81) == "200" ]]'
+          bash -c '[[ $(curl -s -o /dev/null -w "%{http_code}" http://localhost:81) == "200" ]]'
