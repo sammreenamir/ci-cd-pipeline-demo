@@ -25,17 +25,18 @@ jobs:
           docker rm sammreen || true
           docker run -d --name sammreen -p 81:81 sammreen
 
-  test:
-    runs-on: self-hosted
-    needs: deploy
-    steps:
-      - name: Install curl (CentOS 8)
-        run: |
-          sudo yum update -y
-          sudo yum install -y curl
-
-      - name: Test if the server is up
-        run: |
-          echo "Testing if the server is up..."
-          sleep 180
-          '[[ $(curl -s -o /dev/null -w "%{http_code}" http://103.172.26.37:81) == "200" ]]'
+ test:
+  runs-on: self-hosted
+  needs: deploy
+  steps:
+    - name: Test if the server is up
+      run: |
+        echo "Testing if the server is up..."
+        sleep 180
+        STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://103.172.26.37:81)
+        if [ "$STATUS_CODE" -eq 200 ]; then
+          echo "Server is up and running."
+        else
+          echo "Server is not up, status code: $STATUS_CODE"
+          exit 1
+        fi
