@@ -38,4 +38,4 @@ jobs:
         run: |
           echo "Testing if the server is up..."
           sleep 180
-          '[[ $(curl -s -o /dev/null -w "%{http_code}" http://103.172.26.37) == "200" ]]'
+          '[[ $(curl -s -o /dev/null -w "%{http_code}" http://103.172.26.37:81) == "200" ]]'
