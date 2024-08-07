@@ -1,46 +1,41 @@
-name: CI
-on: [push]
+name: CI/CD Pipeline
 
-env:
-  DOCKER_IMAGE: sammreen
-  DOCKER_TAG: latest  
+on: [push, pull_request]
 
 jobs:
   build:
     runs-on: self-hosted
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-        
+        uses: actions/checkout@v3
+
       - name: Build Docker image
-        run: docker build -t ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} .
-        
-      - name: Push Docker image
-        run: docker push ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+        run: |
+          echo "Building Docker image..."
+          docker build -t sammreen .
 
   deploy:
     runs-on: self-hosted
     needs: build
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-        
       - name: Deploy Docker container
         run: |
+          echo "Deploying Docker container..."
           docker stop sammreen || true
           docker rm sammreen || true
-          docker run -d --name sammreen -p 81:81 ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
-          docker ps
-          docker logs sammreen
+          docker run -d --name sammreen -p 81:81 sammreen
 
   test:
     runs-on: self-hosted
     needs: deploy
-    container:
-      image: curlimages/curl:latest
     steps:
+      - name: Install curl (CentOS 8)
+        run: |
+          sudo yum update -y
+          sudo yum install -y curl
+
       - name: Test if the server is up
         run: |
-          sleep 180  # Increase sleep time to allow the server to be ready
-          curl -v http://103.172.26.37:81 || true
-          test $(curl -s -o /dev/null -w "%{http_code}" http://103.172.26.37:81) -eq 200
+          echo "Testing if the server is up..."
+          sleep 180
+          '[[ $(curl -s -o /dev/null -w "%{http_code}" http://103.172.26.37) == "200" ]]'
